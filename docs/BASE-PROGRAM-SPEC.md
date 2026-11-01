@@ -104,6 +104,9 @@ tests/
 ## 5. Interfaces — the observable contract
 
 ```python
+# api/app.py
+def create_app(store: Store | None = None) -> Flask   # must work with Flask's test client, no port
+
 # models.py
 @dataclass(frozen=True)
 class LineItem:      description: str; amount_cents: int
@@ -117,11 +120,22 @@ def data_dir() -> Path            # LEDGER_DATA_DIR env override, else settings.
 
 # store.py
 class Store:
+    def __init__(self, path: str)       # sqlite file path
+    def init_db(self) -> None           # idempotent schema creation
     def insert(self, rec: Record) -> int
     def find_by_email(self, email: str) -> list[Record]
     def claim_outbox(self, limit: int) -> list[OutboxRow]
     def mark_done(self, row_id: int) -> None
     def update_status(self, rec_id: int, status: str) -> None
+
+# queue/producer.py
+def enqueue(store: Store, records: list[Record]) -> int
+
+# queue/consumer.py
+def drain(store: Store, limit: int) -> int
+
+# reports/projections.py
+def totals(store: Store) -> dict[str, int]
 
 # validation.py
 def normalise_email(value: str) -> str
@@ -171,6 +185,9 @@ outbox(id INTEGER PRIMARY KEY, payload TEXT, state TEXT DEFAULT 'pending',
        attempts INTEGER DEFAULT 0, created_at TEXT)
 totals(currency TEXT PRIMARY KEY, amount_cents INTEGER, updated_at TEXT)
 ```
+
+The store lives at **`<data_dir>/ledger.sqlite`**. That path is part of the contract: a runner opens it
+directly to count rows, and the CLI and the API must agree on it.
 
 No index on `email`. That is deliberate — the duplicate lookup is a scan, which is fine at fixture
 scale and keeps the build simple.
