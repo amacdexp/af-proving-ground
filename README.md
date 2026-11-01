@@ -34,11 +34,16 @@ dev/spec-check.sh           conformance check for the build
 ## Reproducing a run
 
 ```
-git worktree add /tmp/pg/<arm>/<n> task/v1     # one worktree per run, never shared
-python -m pytest -q                            # the same command the gate runs
+git worktree add --detach /tmp/pg/<arm>/<n> task/v1   # detached, one per run
+python -m pytest -q                                   # the same command the gate runs
+git diff task/v1 > /runs/<arm>/<n>/patch.diff         # the receipt leaves the repo
 ```
 
-One branch per **run**, not per arm: `run/<arm>/<n>`. Branches are receipts and never merge.
+**Run branches are local and never pushed.** The repo is disposable: between runs it is reset to
+`task/v1`, and a re-run is a fresh clone of the tag, not a repair. Receipts live outside it — patch,
+gate output, ledger and served model IDs go to the run bundle, never to a branch on origin.
+
+**`main` is never touched after the freeze.** No run checks it out; no run merges into it.
 
 ## What this repository is not
 

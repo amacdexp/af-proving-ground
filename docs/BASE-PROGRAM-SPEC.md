@@ -288,6 +288,9 @@ A build that fails this check is not the substrate. Fix the build, not the check
 4. Commit as `freeze: task/v1 — substrate`.
 5. Tag: `git tag -a task/v1 -m "frozen substrate"`.
 6. `main` never moves again except by a deliberate `task/v2`.
+7. **Runs never touch `main` and never push a branch.** Each run is a detached worktree at `task/v1`;
+   its patch and logs are exported to the run bundle. The repository is disposable — a re-run is a
+   fresh clone of the tag, not a repair.
 
 The spec file is stripped so that an arm working in the repo cannot read the answer key. Keep the
 original in the factory repo at `teams/proving-ground/` — the design of record lives there.
