@@ -193,6 +193,10 @@ and a different capability from editing a frozen repo:
 | cost | $0.22 |
 | human interventions | 0 |
 
+Records live in `builds/` — one JSON per variant, schema in `builds/schema.json`, rules in
+`builds/README.md`. Exactly one record is ever `"official": true`, and it must match the commit that
+`task/v1` is tagged on.
+
 **This is one data point, not a comparison.** It is a baseline for anyone who builds the fixture
 themselves, and the fields above are the ones a build record must carry. Note what the numbers say:
 cheap in money, expensive in time, and almost all of the prompt volume is the same context being

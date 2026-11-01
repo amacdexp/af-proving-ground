@@ -1,0 +1,15 @@
+{
+  "schema": "af-proving-ground/build/v1",
+  "build_id": "YYYY-MM-DD-harness--model",
+  "official": false,
+  "date": "YYYY-MM-DD",
+  "harness": { "name": "", "version": "" },
+  "model": { "requested": "", "served": "", "reasoning": "max" },
+  "session": { "assistant_turns": 0, "wall_clock_s": 0, "human_interventions": 0 },
+  "tokens": { "prompt_total": 0, "input_fresh": null, "cache_read": null, "cache_write": null, "output": null },
+  "cost": { "billed_usd": null, "estimated_usd": null, "source": "unavailable", "rate_table_date": null },
+  "outcome": { "build_completed": false, "spec_check": "not-run", "baseline": "0/6", "rebuild_rounds": 0 },
+  "artefact": { "commit": null, "files": null, "loc": null, "tests": null, "gate_runtime_s": null },
+  "supersedes": null,
+  "notes": ""
+}

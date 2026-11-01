@@ -8,6 +8,7 @@ venv/
 
 # Fixture runtime state — a run must never write here
 data/
+data-run/
 *.sqlite
 *.sqlite3
 

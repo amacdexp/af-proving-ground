@@ -1,0 +1,15 @@
+{
+  "schema": "af-proving-ground/build/v1",
+  "build_id": "2026-11-01-claude-code--deepseek-v4-1-flash",
+  "official": false,
+  "date": "2026-11-01",
+  "harness": { "name": "claude-code", "version": "unreported" },
+  "model": { "requested": "deepseek/deepseek-v4.1-flash", "served": "unreported", "reasoning": "max" },
+  "session": { "assistant_turns": 67, "wall_clock_s": 1688, "human_interventions": 0 },
+  "tokens": { "prompt_total": 7432912, "input_fresh": null, "cache_read": null, "cache_write": null, "output": null },
+  "cost": { "billed_usd": null, "estimated_usd": 0.22, "source": "harness-report", "rate_table_date": null },
+  "outcome": { "build_completed": true, "spec_check": "not-run", "baseline": "0/6 (not run)", "rebuild_rounds": 0 },
+  "artefact": { "commit": null, "files": null, "loc": null, "tests": null, "gate_runtime_s": null },
+  "supersedes": null,
+  "notes": "Pilot. 97.8% of prompt tokens reported as cache reads (~163k fresh implied, not split out by the harness). Cost is the harness's own figure, not a provider invoice. Baseline not yet run — the build has not been transferred to a host that can run it."
+}
