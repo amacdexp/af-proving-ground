@@ -164,10 +164,10 @@ result to flatter the model.
 
 ```bash
 git clone <repo> && cd af-proving-ground
-git worktree add --detach /tmp/pg/<arm>/<n> task/v1
-cd /tmp/pg/<arm>/<n>
+git worktree add --detach ../pg-runs/<arm>/<n> task/v1
+cd ../pg-runs/<arm>/<n>
 python -m pytest -q                       # the gate, unchanged
-git diff task/v1 > /runs/<arm>/<n>/patch.diff
+git diff task/v1 > ../../results/<date>/<arm>-<n>.patch
 ```
 
 **Run branches are local and never pushed.** The repo is disposable; a re-run is a fresh clone of the

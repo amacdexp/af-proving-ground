@@ -431,3 +431,135 @@ help belongs in the harness, not here.
 **What is deliberately absent:** no agent runtime, no message bus, no inter-agent transport. Those are
 runner concerns and they are measured by the arm's own instrumentation, not by the substrate. A
 substrate that embedded a transport would only be runnable by harnesses that speak it.
+
+---
+
+## 16. Running it locally, and seeing the expected errors
+
+**Assumption:** the repo is cloned into a workspace directory. Every command below is run from the
+**repo root**, and every path is relative to it — no absolute paths, no `/tmp`.
+
+```bash
+cd af-proving-ground                      # the clone, wherever your workspace keeps it
+python3 -m venv .venv
+. .venv/bin/activate
+pip install flask pytest
+export PYTHONPATH=src
+export LEDGER_DATA_DIR="$PWD/data-run"    # keeps runs out of data/
+mkdir -p data-run
+```
+
+### The gate
+
+```bash
+./dev/gate.sh
+# expected: RESULT: total=NN passed=NN failed=0 duration=Ns
+```
+
+### Reproducing each expected error
+
+These are **builder-side**. They are removed at the freeze along with §7. If one prints something
+other than the stated expectation, the defect is missing or was quietly fixed — stop and report; do
+not adjust the recipe.
+
+**D-A · duplicate accepted over HTTP**
+
+```bash
+python3 - <<'PY'
+from ledger.api.app import create_app
+from ledger.store import Store
+s = Store("data-run/http.sqlite"); s.init_db()
+c = create_app(s).test_client()
+body = {"supplier": "Acme", "email": "dup@example.com", "amount_cents": 1000,
+        "currency": "GBP", "issued_on": "2026-01-01",
+        "items": [{"description": "consulting", "amount_cents": 1000}]}
+print(c.post("/records", json=body).status_code,
+      c.post("/records", json=body).status_code)
+PY
+# expected: 201 201
+```
+
+**D-A · duplicate accepted through the queue**
+
+```bash
+python3 - <<'PY'
+from datetime import date
+from ledger.store import Store
+from ledger.models import Record
+from ledger.queue import producer, consumer
+s = Store("data-run/queue.sqlite"); s.init_db()
+r = Record(supplier="Acme", email="dup@example.com", amount_cents=1000,
+           currency="GBP", issued_on=date(2026, 1, 1), items=())
+producer.enqueue(s, [r, r]); producer.enqueue(s, [r, r])
+consumer.drain(s, 50)
+print(len(s.find_by_email("dup@example.com")))
+PY
+# expected: 2
+```
+
+**D-A · the CLI path rejects (the control — this one is correct)**
+
+```bash
+cat > data-run/batch.json <<'JSON'
+{"records": [{"supplier": "Acme", "email": "dup@example.com", "amount_cents": 1000,
+              "currency": "GBP", "issued_on": "2026-01-01", "items": []}]}
+JSON
+python3 -m ledger.cli backfill --file data-run/batch.json
+python3 -m ledger.cli backfill --file data-run/batch.json
+python3 - <<'PY'
+from ledger.store import Store
+s = Store("data-run/ledger.sqlite"); s.init_db()
+print(len(s.find_by_email("dup@example.com")))
+PY
+# expected: 1
+```
+
+**D-B · a failed insert after ack loses the record**
+
+```bash
+python3 - <<'PY'
+from datetime import date
+from ledger.store import Store
+from ledger.models import Record
+from ledger.queue import producer, consumer
+s = Store("data-run/crash.sqlite"); s.init_db()
+r = Record(supplier="Acme", email="crash@example.com", amount_cents=100,
+           currency="GBP", issued_on=date(2026, 1, 1), items=())
+producer.enqueue(s, [r])
+s.insert = lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom"))
+consumer.drain(s, 10)
+print(len(s.claim_outbox(10)))
+PY
+# expected: 0  (the row was marked done; the record is gone)
+```
+
+**D-C · the env override is ignored by two paths**
+
+```bash
+python3 -m ledger.cli report
+ls data/ 2>/dev/null && echo "default data/ was written"
+# expected: files under data/ — the export/projection paths ignored LEDGER_DATA_DIR
+```
+
+**D-D · totals do not follow a status change**
+
+```bash
+python3 - <<'PY'
+from datetime import date
+from ledger.store import Store
+from ledger.reports import projections
+from ledger.models import Record
+s = Store("data-run/proj.sqlite"); s.init_db()
+rid = s.insert(Record(supplier="Acme", email="p@example.com", amount_cents=500,
+                      currency="GBP", issued_on=date(2026, 1, 1), items=()))
+print(projections.totals(s))
+s.update_status(rid, "void")
+print(projections.totals(s))
+PY
+# expected: two identical dicts
+```
+
+### Before you push
+
+Run all six, then the gate. **Six expected errors and a green gate is the definition of a correct
+build.** Push it; the scorer re-runs the same behaviour against the pushed commit and compares.

@@ -15,7 +15,8 @@ n=${3:?run number, e.g. 01}
 tag=${4:-task/v1}
 
 root=$(git rev-parse --show-toplevel)
-wt="/tmp/pg/$arm/$n"
+wtroot=${PG_WORKTREE_ROOT:-$(cd "$root/.." && pwd)/pg-runs}
+wt="$wtroot/$arm/$n"
 out="$root/results/$(date -u +%Y-%m-%d)"
 
 case "$cmd" in
@@ -35,7 +36,7 @@ case "$cmd" in
   finish)
     [ -d "$wt" ] || { echo "no worktree at $wt — run scaffold first" >&2; exit 1; }
     [ -x "$wt/dev/gate.sh" ] || { echo "missing $wt/dev/gate.sh" >&2; exit 1; }
-    mkdir -p "$out" "$root/../runs/$arm/$n" 2>/dev/null || true
+    mkdir -p "$out" "$wtroot/$arm/$n" 2>/dev/null || true
 
     start=$(date +%s)
     set +e
