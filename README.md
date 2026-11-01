@@ -13,6 +13,30 @@ the same task tag.
 
 ---
 
+## Run a test in six steps
+
+| # | Step | What you use |
+|---|---|---|
+| 1 | Pin the pair you are testing — substrate and question | tag `task/v1` · `briefs/v1/` |
+| 2 | Make a fresh worktree; never reuse one | `dev/run-local.sh scaffold <arm> <n>` |
+| 3 | Hand the arm the brief **verbatim**; fill only the three header lines | `briefs/v1/RUN-BRIEF.md` |
+| 4 | Let it work. No help, no hints, no mid-run answers | — |
+| 5 | Run the gate on what it produced | `./dev/gate.sh` |
+| 6 | Collect and store the numbers | `briefs/v1/STATS.md` → `results/<date>/<arm>-<n>.{json,patch,gate.log}` |
+
+**Read these three, in this order:**
+
+| File | Answers |
+|---|---|
+| `briefs/v1/TASK.md` | what the arm is asked to do |
+| `briefs/v1/RUN-BRIEF.md` | what the arm is told, word for word, and what "done" means |
+| `briefs/v1/STATS.md` | where every number comes from, which missing number voids the run, and where the record lands |
+
+If a number cannot be observed, it is `null` — never an estimate. That single rule is what makes two
+results comparable.
+
+---
+
 ## The five arms this repo was built for
 
 | Arm | Arrangement | How it is wired |
