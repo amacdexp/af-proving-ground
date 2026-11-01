@@ -72,8 +72,11 @@ one check that separates "a repo that looks right" from "a repo that behaves as 
 ### A6 onwards — your own arm
 
 The five above are the set this repo was built for. Anything else is `A6`, `A7`, … and needs three
-things: a name, a pinned harness version, and a **proven** model identity. A worked example follows the
-run steps below.
+things: a name, a pinned harness version, and a **proven** model identity.
+
+Each arm is declared in `arms/<id>.conf` — five keys, no code — and `dev/arm-check.sh <id>` answers
+"can this harness be run here at all?" before anyone spends money. Contract: `arms/README.md`.
+A worked example follows the run steps below.
 
 ## The five arms this repo was built for
 
