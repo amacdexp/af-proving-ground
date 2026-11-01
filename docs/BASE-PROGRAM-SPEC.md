@@ -305,3 +305,32 @@ original in the factory repo at `teams/proving-ground/` — the design of record
 - No docker, no redis, no postgres, no celery.
 - No CI matrix, no coverage tooling, no type checker in the gate. One command, one result.
 - No "helpful" comments pointing at the defects.
+
+---
+
+## 13. Scoring interface — what the build must expose
+
+The repository is public and other people will run their own arms against it. That only works if the
+gate is machine-readable and identical for everyone.
+
+**One command, one parseable line.** `dev/gate.sh` runs the suite and prints exactly one line:
+
+```
+RESULT: total=61 passed=61 failed=0 duration=12.4s
+```
+
+Rules:
+
+1. `dev/gate.sh` is the only supported entry point. Arms may run `pytest` directly, but the recorded
+   result comes from the gate.
+2. The line is the last line of stdout. Everything else is noise and may be ignored by a runner.
+3. Exit code is 0 only when `failed=0`.
+4. The suite must not depend on wall-clock time, network, locale, or unseeded randomness. A gate that
+   flakes is a gate nobody can compare against.
+5. `tests/` ships a checksum file (`tests/CHECKSUM`) so a third party can prove the suite was not
+   edited during a run — that is held-out check H7, and it is only meaningful if the build provides it.
+6. The held-out suite lives outside this repository and is never referenced here beyond §8. Do not add
+   fixtures that make it trivially passable.
+
+**The build report must record** the exact `RESULT:` line and the tests checksum, so a submitted result
+can be checked against the substrate it claims to have run.

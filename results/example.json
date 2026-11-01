@@ -1,0 +1,17 @@
+{
+  "schema": "af-proving-ground/result/v1",
+  "task":   { "tag": "task/v1", "commit": "0000000000000000000000000000000000000000" },
+  "arm":    { "id": "A1", "label": "native agent, skills + tools" },
+  "harness":{ "name": "openclaw-native", "version": "0.0.0-example", "config": "default tool policy" },
+  "model":  { "requested": "example/model", "served": "example/model-2026-10-01", "reasoning": "high" },
+  "environment": { "date": "2026-11-01", "os": "linux-x64", "python": "3.11.9" },
+  "outcome": { "acceptance": "partial", "held_out": { "passed": 5, "total": 7 } },
+  "economy": { "turns": 41, "wall_clock_s": 905, "model_spend_usd": 1.12,
+               "context": { "prompt_tokens": 182000, "cache_read": 141000, "cache_write": 22000,
+                            "output": 9400, "compactions": 0 } },
+  "review":  { "defects_found": 2, "rework_files": 1, "rework_lines": 14 },
+  "operator_score": 4,
+  "void": false,
+  "void_reason": null,
+  "notes": "Example only — not a real run. Replace every field."
+}

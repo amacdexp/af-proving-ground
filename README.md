@@ -1,57 +1,167 @@
 # af-proving-ground
 
-A fixed substrate for comparing coding harnesses. Same repo, same task, same commit — the harness is
-the only variable.
+A frozen repository for comparing **coding-agent harnesses** on the same task, with the same process,
+and publishing the result in a form someone else can reproduce.
 
-**Status: pre-freeze.** The base program is not built yet. This repository currently holds the build
-specification and nothing else; `task/v1` does not exist.
+Most benchmarks ask "how good is the model". This one asks a narrower and more practical question:
+*which arrangement of agent, harness and model gets a real change landed, reviewed and merged — at
+what cost?* The repository is deliberately ordinary, because the variable under test is the harness,
+not the domain.
 
-## Why
+Anyone can run any harness against `task/v1` and submit a result. Comparisons are only valid within
+the same task tag.
 
-The build team runs a hybrid: native OpenClaw agents with delegated coding workers. That setup is
-being questioned, and nobody has measured it against the alternatives on the same task. This repo is
-the measuring stick — deliberately small, deliberately ordinary, and frozen so that two runs are
-comparable.
+---
 
-It is not a benchmark suite and it is not a product. It is one repository, one ticket, and a gate.
+## The five arms this repo was built for
 
-## The experiment, in one paragraph
+| Arm | Arrangement | How it is wired |
+|---|---|---|
+| **A1** | Native agent, skills + tools, no external harness | in-process tool loop |
+| **A2** | DSH headless | one-shot delegation wrapper |
+| **A3** | DSH-CC (plugin stack, executor profile) | plugin path; capability proven per run |
+| **A4** | OpenCode | ACP session (`agentId: opencode`) |
+| **A5** | **Hybrid** — native lead + delegated worker | in-process lead, external worker |
 
-Five arms — native, DSH, DSH-CC, OpenCode, and the native+DSH hybrid — each run the same ticket
-against the same tagged commit, under a process held identical across arms: declaration at start, a
-state ledger, artifact-first output, bounded wait, one writer per worktree, and "done" means the
-acceptance gate passes, not that the agent says so. Scoring is acceptance, independent review, rework
-and integration; cost and context economics explain the result rather than deciding it.
+A5 is the one the build team actually runs. If you are testing your own setup, A5 is the arm that
+matters most, and A1 is its control.
 
-## Layout
+**Adding an arm** is expected: `A6+`, your harness, any model. Nothing in the repo is specific to the
+five above — an arm is a name, an arrangement, a version string and a result file.
 
+---
+
+## The task
+
+`task/v1` — one ticket, written the way tickets arrive:
+
+> Importing the same invoice twice creates two records. Re-importing a file should be idempotent, and
+> a duplicate should be rejected at every way a record can enter the system, with a `409` and
+> `duplicate_email`.
+
+The ticket names **no files**. Finding the enforcement points is the work. The change spans 5–8 files
+across two modules.
+
+The repo contains a *class* of defect, not one incident. An arm that fixes the surface the visible
+tests point at will pass `pytest` and fail the held-out suite. That gap is the measurement.
+
+---
+
+## Process constant
+
+Every arm, every run, the same rules:
+
+1. One line at start: task, branch, acceptance command.
+2. A state ledger file, updated per step, surviving a restart.
+3. Artifact-first output — the change and its evidence are the deliverable.
+4. Bounded wait, never poll.
+5. One writer per worktree; one branch or detached worktree per run.
+6. Integration after the gate and after review.
+7. **"Done" is the gate passing, not the agent saying so.**
+
+If the process differs between arms, the run measures your process and calls it a harness.
+
+---
+
+## Scoring
+
+A run produces a **0–100 composite** plus the raw metrics it came from. Publish both: a score without
+its components is not reproducible.
+
+| Component | Points | Rule |
+|---|---|---|
+| **Acceptance** | 50 | gate passes: 50 · partial: 25 · fails: 0 |
+| **Held-out** | 25 | `passed / total × 25` — the unseen suite (§H1–H7) |
+| **Integration** | 15 | merge with no manual repair: 15 · with repair: 7 · cannot: 0 |
+| **Economy** | 10 | cheapest run in the batch scores 10; others scale by ratio |
+
+**Reported separately, never folded into the composite:** the operator's 1–5 score on the artefact,
+and total model spend. A single number that hides the human judgement is not comparable across
+people; a spend number folded into quality rewards doing less.
+
+**Automatic void** (recorded, not scored): served model identity unprovable · harness version not
+pinned · per-run spend ceiling exceeded · process constant not given verbatim.
+
+---
+
+## Recording a run
+
+One JSON file per run: `results/<YYYY-MM-DD>/<arm>-<n>.json`, against `results/schema.json`.
+
+```json
+{
+  "schema": "af-proving-ground/result/v1",
+  "task":   { "tag": "task/v1", "commit": "<sha>" },
+  "arm":    { "id": "A5", "label": "native lead + DSH worker" },
+  "harness":{ "name": "dsh", "version": "<pinned>", "config": "headless, 7200s timeout" },
+  "model":  { "requested": "deepseek/deepseek-v4-pro",
+              "served": "<id returned by the provider>",
+              "reasoning": "high" },
+  "environment": { "date": "2026-11-01", "os": "linux-x64", "python": "3.11.9" },
+  "outcome": { "acceptance": "pass", "held_out": { "passed": 6, "total": 7 } },
+  "economy": { "turns": 41, "wall_clock_s": 905, "model_spend_usd": 1.12,
+               "context": { "prompt_tokens": 0, "cache_read": 0, "cache_write": 0,
+                            "output": 0, "compactions": 0 } },
+  "review":  { "defects_found": 2, "rework_files": 1, "rework_lines": 0 },
+  "operator_score": 4,
+  "void": false,
+  "notes": ""
+}
 ```
-docs/BASE-PROGRAM-SPEC.md   the build brief (builder-only; removed at the freeze)
-dev/spec-check.sh           conformance check for the build
-```
-`src/`, `tests/`, `settings.toml` and `pyproject.toml` arrive with the build.
+
+**The model field is not optional and not free-form.** Record the model that actually served the
+request — an alias is a routing label, not a model — and the reasoning/thinking level, because two
+runs at different levels are different experiments. A result whose served model cannot be shown is
+void.
+
+## Submitting a result
+
+Pull request with: the JSON above, the patch (`git diff task/v1`), the gate log, and the harness
+version. Nothing else. Results are merged as-is; they are not ratified, ranked across tags, or
+"adjusted" for fairness. The components are published so a reader can re-weight them.
+
+**Comparability rule:** results are comparable only within one `task/vN` tag. A v1 score and a v2
+score are different experiments that happen to share a name.
+
+---
+
+## Fixture rotation — why v1 will not last
+
+This repository is public, so `task/v1` will eventually be in someone's training data. That does not
+invalidate it for runs whose models predate it, and it does not make the measurements wrong — it makes
+them **dated**.
+
+The rule that follows: **each round publishes a new tag**, with new fixtures and a new seeded defect
+class. Cross-tag comparison is invalid, and a run must always state the tag it ran against. Reputation
+attaches to a harness's *record across tags*, not to a single number.
+
+Anyone who runs v1 to measure a model newer than this repository should say so — and should expect the
+result to flatter the model.
+
+---
 
 ## Reproducing a run
 
-```
-git worktree add --detach /tmp/pg/<arm>/<n> task/v1   # detached, one per run
-python -m pytest -q                                   # the same command the gate runs
-git diff task/v1 > /runs/<arm>/<n>/patch.diff         # the receipt leaves the repo
+```bash
+git clone <repo> && cd af-proving-ground
+git worktree add --detach /tmp/pg/<arm>/<n> task/v1
+cd /tmp/pg/<arm>/<n>
+python -m pytest -q                       # the gate, unchanged
+git diff task/v1 > /runs/<arm>/<n>/patch.diff
 ```
 
-**Run branches are local and never pushed.** The repo is disposable: between runs it is reset to
-`task/v1`, and a re-run is a fresh clone of the tag, not a repair. Receipts live outside it — patch,
-gate output, ledger and served model IDs go to the run bundle, never to a branch on origin.
+**Run branches are local and never pushed.** The repo is disposable; a re-run is a fresh clone of the
+tag, not a repair. **`main` is never touched after the freeze.**
 
-**`main` is never touched after the freeze.** No run checks it out; no run merges into it.
+---
 
 ## What this repository is not
 
-No AI, no model clients, no harness code, no game, no narrative, no auth, no containers. If a change
-adds any of those, it is in the wrong repository.
+Not a model benchmark, not a leaderboard, not a product. No AI, no harness code, no game, no
+containers. One task, one gate, one record format.
 
 ## Governance
 
-Built once by an outside builder, frozen once, and never tuned afterwards. The design of record lives
-in the factory repo under `teams/proving-ground/`. A change to the task is `task/v2` and a new pilot —
-never an edit to `v1`.
+Built once by an outside builder, frozen once, never tuned afterwards. The design of record and the
+build brief live in the build-factory repository. A change to the task is a new tag and a new pilot —
+never an edit to a frozen one.
