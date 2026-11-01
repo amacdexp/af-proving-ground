@@ -10,6 +10,7 @@ set -u
 
 arm=${1:-}
 [ -n "$arm" ] || { echo "usage: arm-check.sh <arm-id>" >&2; exit 2; }
+printf 'host  %s %s\n' "$(uname -s | tr '[:upper:]' '[:lower:]')" "$(uname -m)"
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 2
 run_root=${PG_RUN_ROOT:-$(CDPATH= cd -- "$root/.." && pwd)/pg-runs}
@@ -34,8 +35,22 @@ else
     BIN=""
 fi
 
-# 2 — executable present
-if [ "${BIN:-}" = "native" ]; then
+# 2 — executable present (a composite arm declares its components)
+kind=${KIND:-simple}
+if [ "$kind" = "composite" ]; then
+    missing=""
+    for comp in ${COMPONENTS:-}; do
+        case "$comp" in
+            native) : ;;
+            *) command -v "$comp" >/dev/null 2>&1 || missing="$missing $comp" ;;
+        esac
+    done
+    if [ -n "$missing" ]; then
+        bad "2 components: missing$missing"
+    else
+        ok "2 components: all present (${COMPONENTS:-none} declared)"
+    fi
+elif [ "${BIN:-}" = "native" ]; then
     ok "2 executable: native (in-process, nothing to install)"
 elif [ -n "${BIN:-}" ] && command -v "$BIN" >/dev/null 2>&1; then
     ok "2 executable: $(command -v "$BIN")"
@@ -92,6 +107,10 @@ fi
 [ -d "$wt" ] && git -C "$root" worktree remove --force "$wt" >/dev/null 2>&1
 
 printf '\n'
+if [ "$fails" -eq 0 ] && [ "$kind" = "composite" ]; then
+    printf 'PREFLIGHT: %s partial — components present, composition unproven (needs a Phase 0 run)\n' "$arm"
+    exit 3
+fi
 if [ "$fails" -eq 0 ]; then
     printf 'PREFLIGHT: %s ok\n' "$arm"
     exit 0
