@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Fixture runtime state — a run must never write here
+data/
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
