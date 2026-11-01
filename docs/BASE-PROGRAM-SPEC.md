@@ -334,3 +334,46 @@ Rules:
 
 **The build report must record** the exact `RESULT:` line and the tests checksum, so a submitted result
 can be checked against the substrate it claims to have run.
+
+---
+
+## 14. Handover — what an outside build still owes
+
+The build happens outside OpenClaw and without the gate. Expect the first drop to be a working
+application that is not yet the substrate. The gap is **plumbing, never design** — and it is closed by
+one pass, not by a new role.
+
+### 14.1 The uplift pass (mechanical)
+
+Run in this order; stop at the first category that fails:
+
+| # | Check | Fix |
+|---|---|---|
+| 1 | `python -m venv .venv && .venv/bin/pip install flask pytest` | pin nothing; two deps only |
+| 2 | `python -m pytest -q` green | fix tests, not the gate |
+| 3 | suite under 20 s cold | cut slow tests |
+| 4 | `dev/gate.sh` exists and prints one `RESULT:` line | add the wrapper |
+| 5 | `tests/CHECKSUM` present and matches | generate it |
+| 6 | no `requests`/`httpx`/`urllib`/`socket` in `src/` | remove the path |
+| 7 | `dev/spec-check.sh` green | make it pass — never weaken it |
+| 8 | no comment names a defect | delete the comment |
+
+### 14.2 The decision rule
+
+- **Fails on structure** (modules missing, interfaces absent, the class of defect not seeded) → **rebuild
+  from the spec.** Patching a wrong shape produces a substrate nobody can trust.
+- **Fails on plumbing** (deps, gate line, checksum, a stray network import) → **uplift in place.** This
+  is the expected case and it is cheap.
+
+### 14.3 What the uplift may not do
+
+- Change behaviour. Conformance only. A behavioural change is `task/v2` or a rebuild.
+- Weaken `spec-check.sh` to make a build pass. If the check is wrong, change it in its own commit with
+  the reason, before the build is judged.
+- Add a harness, a model client, or anything from §12.
+
+### 14.4 Independence
+
+The uplift is reviewed by someone who did not write the spec before `task/v1` is tagged. The substrate
+is then frozen and checksummed; scoring never depends on who built it — only on the gate and the
+held-out suite, both of which are published artefacts rather than personal judgements.
