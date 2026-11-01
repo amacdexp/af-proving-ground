@@ -1,0 +1,15 @@
+{
+  "schema": "af-proving-ground/build/v1",
+  "build_id": "2026-11-01-claude-code--deepseek-v4-1-flash-official",
+  "official": true,
+  "date": "2026-11-01",
+  "harness": { "name": "claude-code", "version": "2.1.314" },
+  "model": { "requested": "deepseek/deepseek-v4.1-flash", "served": "unreported", "reasoning": "max" },
+  "session": { "assistant_turns": 62, "wall_clock_s": 1688, "human_interventions": 0 },
+  "tokens": { "prompt_total": 6829998, "input_fresh": 121006, "cache_read": 6708992, "cache_write": 0, "output": 179945 },
+  "cost": { "billed_usd": null, "estimated_usd": 0.22, "source": "harness-report", "rate_table_date": null },
+  "outcome": { "build_completed": true, "spec_check": "pass", "baseline": "6/6", "rebuild_rounds": 0 },
+  "artefact": { "commit": "32d27d57ac145c4418a293bf3c10466cc05ce1da", "files": 28, "loc": 3029, "tests": 164, "gate_runtime_s": 0.7 },
+  "supersedes": "2026-11-01-claude-code--deepseek-v4-1-flash-verified",
+  "notes": "Official substrate. Tag task/v1 (annotated object 72e5af04c0ebabe9cdb5dc1d6a90c2baeb6e498d) peels to 32d27d57ac145c4418a293bf3c10466cc05ce1da, parent 69113ec. Independently verified by af-dev-lead on the tagged tree, not on the build branch: gate 164 passed / 0 failed (2.9s on the verifying host; 0.7s is the build machine and is the figure recorded above); baseline 6/6 with B1-B6 all matching; BASE-PROGRAM-SPEC and BUILD-REPORT absent from the tree; zero D-[A-E] occurrences anywhere in it; no tracked data/, .venv/ or *.sqlite; 41 files in the tag tree. gate_runtime_s is single-valued by schema, so the build-machine figure was kept and the verifying-host figure is here. KNOWN LIMITATION: 3 of 62 turns ran on deepseek-v4-pro (see the superseded record), so this build is a valid fixture but NOT a single-model E0 comparison sample. The tag tree carries builds/ as of c1bd452, so its copy of the pilot record is superseded by the records on main; records on main are authoritative, and the tag does not include main's later docs commits by design."
+}
