@@ -183,15 +183,12 @@ tag, not a repair. **`main` is never touched after the freeze.**
 The substrate itself was built from this spec in one unattended session. That is a measurable event,
 and a different capability from editing a frozen repo:
 
-| Field | Pilot value |
-|---|---|
-| harness | Claude Code |
-| model / reasoning | DeepSeek V4.1 Flash → V4 Pro mid-session, **max** |
-| assistant turns | 67 |
-| wall clock | 28 m 08 s |
-| prompt tokens | 7,432,912 total — **97.8% cache reads** |
-| cost | $0.22 |
-| human interventions | 0 |
+Numbers live in `builds/`, not here. The current figure set is
+`builds/2026-11-01-claude-code--deepseek-v4-1-flash-verified.json`: 62 build turns, 28 m 08 s, max
+reasoning, 6.83M prompt tokens (121k fresh / 6.71M cache read), $0.22, 0 human interventions.
+
+This table used to carry a second copy of those numbers. It doesn't any more — two copies of a
+measurement drift, and a benchmark that quotes itself is not evidence.
 
 Records live in `builds/` — one JSON per variant, schema in `builds/schema.json`, rules in
 `builds/README.md`. Exactly one record is ever `"official": true`, and it must match the commit that
