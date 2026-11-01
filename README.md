@@ -54,6 +54,19 @@ embedded one would only be runnable by harnesses that speak it.
 
 ---
 
+## Briefs — the prompt each arm gets
+
+`briefs/v1/` holds the three documents that make a run comparable:
+
+| File | What it is |
+|---|---|
+| `TASK.md` | the ticket — the only thing the arm is told about the question |
+| `RUN-BRIEF.md` | the prompt, given **verbatim**; the runner fills three header lines and nothing else |
+| `STATS.md` | where each number comes from, and what to do when a harness will not report one |
+
+Briefs version independently of the substrate tag: the code freezes as `task/vN`, the question freezes
+as `briefs/vN`. A result cites both, and neither moves underneath the other.
+
 ## The task
 
 `task/v1` — one ticket, written the way tickets arrive:
