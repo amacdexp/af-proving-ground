@@ -3,8 +3,7 @@
 #
 #   ./dev/spec-check.sh
 #
-# Exits 0 only when every check passes. The defect checks (D-A to D-E) are
-# builder-side and are stripped at the freeze; the structural checks stay.
+# Exits 0 only when every check passes.
 set -u
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd) || exit 2
@@ -64,42 +63,7 @@ else
     bad "pytest is not green (gate exit ${rc})"
 fi
 
-# 3. D-A: the strict parameter exists; the consumer does not use validation --
-if grep -Eq 'def validate_record\(.*strict' src/ledger/validation.py \
-    && ! grep -q 'validate_record' src/ledger/queue/consumer.py
-then
-    ok "D-A present: strict parameter, consumer bypasses validation"
-else
-    bad "D-A missing or changed"
-fi
-
-# 4. D-B: mark_done appears before insert in the consumer ------------------
-mark_line=$(grep -n 'mark_done' src/ledger/queue/consumer.py | head -n 1 | cut -d: -f1)
-insert_line=$(grep -n 'store.insert' src/ledger/queue/consumer.py | head -n 1 | cut -d: -f1)
-if [ -n "$mark_line" ] && [ -n "$insert_line" ] && [ "$mark_line" -lt "$insert_line" ]; then
-    ok "D-B present: mark_done (line ${mark_line}) before insert (line ${insert_line})"
-else
-    bad "D-B missing: mark_done does not precede insert"
-fi
-
-# 5. D-C: the exporter and projections use the settings directory directly --
-if grep -Fq 'load().data_dir' src/ledger/sync/exporter.py \
-    && grep -Fq 'load().data_dir' src/ledger/reports/projections.py
-then
-    ok "D-C present: exporter and projections ignore the env override"
-else
-    bad "D-C missing or changed"
-fi
-
-# 6. D-D: apply() returns early for update ---------------------------------
-if awk '/if kind in \("update", "delete"\)/ { getline; if ($0 ~ /return/) found = 1 }
-        END { exit !found }' src/ledger/reports/projections.py; then
-    ok "D-D present: apply() returns early for update"
-else
-    bad "D-D missing: apply() does not return early for update"
-fi
-
-# 7. no network imports in src/ --------------------------------------------
+# 3. no network imports in src/ --------------------------------------------
 if grep -REn '^[[:space:]]*(import|from)[[:space:]]+(requests|httpx|urllib|socket)(\.|[[:space:]]|$)' \
     src >/dev/null 2>&1
 then
@@ -108,7 +72,7 @@ else
     ok "no requests/httpx/urllib/socket imports in src/"
 fi
 
-# 8. dependencies are exactly flask and pytest -----------------------------
+# 4. dependencies are exactly flask and pytest -----------------------------
 deps=$("$py" -c 'import tomllib
 data = tomllib.load(open("pyproject.toml", "rb"))
 print(" ".join(sorted(data.get("project", {}).get("dependencies", []))))' 2>/dev/null) || deps=""
@@ -118,20 +82,11 @@ else
     bad "dependencies are: ${deps:-<none>}"
 fi
 
-# 9. the tests checksum matches --------------------------------------------
+# 5. the tests checksum matches --------------------------------------------
 if (cd tests && shasum -a 256 -c CHECKSUM >/dev/null 2>&1); then
     ok "tests/CHECKSUM matches the suite"
 else
     bad "tests/CHECKSUM does not match the suite"
-fi
-
-# 10. D-E: the writable-namespace claim is documented ----------------------
-if grep -Fq 'only writable location' README.md \
-    && grep -Fq 'only location the application writes to' settings.toml
-then
-    ok "D-E present: data_dir documented as the only writable location"
-else
-    bad "D-E missing: the storage claim is not documented"
 fi
 
 if [ "$status" -eq 0 ]; then
