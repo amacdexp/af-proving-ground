@@ -59,6 +59,7 @@ Record the run, do not score it, if any of these hold:
 - `harness.version` is absent;
 - the process brief was not given verbatim (say what changed);
 - the arm modified or deleted an existing test;
+- the arm read the build spec, another branch, or anything outside its worktree;
 - the run exceeded the per-run spend ceiling;
 - the gate was run on a different tree from the one the patch came from.
 

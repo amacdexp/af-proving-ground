@@ -37,6 +37,38 @@ results comparable.
 
 ---
 
+## Build run in five steps — E0 (not the benchmark)
+
+A build run generates a **new substrate** from the spec. It is a different experiment and never
+produces a `results/` entry: it answers *"can this harness produce a conforming repo"*, not *"can it fix
+a defect in one"*.
+
+| # | Step | What you use |
+|---|---|---|
+| 1 | Take the spec | `briefs/build/v1/SPEC.md` |
+| 2 | Fresh branch, no prior code | `git switch -c build/<harness>--<model> main` |
+| 3 | Hand the harness the build brief **verbatim** | `briefs/build/v1/BUILD-BRIEF.md` |
+| 4 | Verify: gate, then the expected-failure baseline | `./dev/gate.sh` then `baseline.py` (scorer-side) |
+| 5 | Record it | `builds/<date>-<harness>--<model>.json` against `builds/schema.json` |
+
+A build becomes a substrate only after the baseline returns **6/6** and the spec is stripped from the
+tree. Exactly one record ever carries `"official": true`.
+
+### The two experiments, side by side
+
+|  | **E0 build run** | **E1 test run** |
+|---|---|---|
+| Input | the spec | frozen substrate + the ticket |
+| Question | can it produce the repo | can it fix the defect |
+| Output | a candidate substrate + a `builds/` record | a `results/` record |
+| Baseline 6/6 | **the acceptance test** | **the entry condition** |
+| Owner time | none | blind scoring, at the end |
+
+The same 6/6 appears in both columns and means opposite things. That is not a coincidence — it is the
+one check that separates "a repo that looks right" from "a repo that behaves as specified".
+
+---
+
 ### A6 onwards — your own arm
 
 The five above are the set this repo was built for. Anything else is `A6`, `A7`, … and needs three
@@ -267,26 +299,15 @@ tag, not a repair. **`main` is never touched after the freeze.**
 
 ---
 
-## Build axis (E0) — pilot
+## E0 records
 
-The substrate itself was built from this spec in one unattended session. That is a measurable event,
-and a different capability from editing a frozen repo:
+Build records live in `builds/` — schema, template, rules, and one file per variant. The current
+official build is `builds/2026-11-01-claude-code--deepseek-v4-1-flash-official.json`: 62 build turns,
+28 m 08 s, max reasoning, 6.83M prompt tokens (121k fresh / 6.71M cache read), $0.22, 0 human
+interventions.
 
-Numbers live in `builds/`, not here. The current figure set is
-`builds/2026-11-01-claude-code--deepseek-v4-1-flash-verified.json`: 62 build turns, 28 m 08 s, max
-reasoning, 6.83M prompt tokens (121k fresh / 6.71M cache read), $0.22, 0 human interventions.
-
-This table used to carry a second copy of those numbers. It doesn't any more — two copies of a
-measurement drift, and a benchmark that quotes itself is not evidence.
-
-Records live in `builds/` — one JSON per variant, schema in `builds/schema.json`, rules in
-`builds/README.md`. Exactly one record is ever `"official": true`, and it must match the commit that
-`task/v1` is tagged on.
-
-**This is one data point, not a comparison.** It is a baseline for anyone who builds the fixture
-themselves, and the fields above are the ones a build record must carry. Note what the numbers say:
-cheap in money, expensive in time, and almost all of the prompt volume is the same context being
-re-presented turn after turn — the #557 failure class wearing a different coat.
+**That build is a fixture, not a comparison sample** — 3 of its 62 turns ran on a different model.
+Valid substrate, invalid data point, and the record says so.
 
 ## What this repository is not
 

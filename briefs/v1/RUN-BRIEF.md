@@ -30,7 +30,8 @@ You are working in a prepared repository at the path above. Your job is one tick
 5. Do not read `builds/` or `results/` — they are records, not inputs.
 6. Do not use the network.
 7. The deliverable is the change and its evidence. Do not paste large output into your replies.
-8. **Done means the gate passes** — not that you believe it does.
+8. Do not read other branches, tags or commits. This worktree is the whole world.
+9. **Done means the gate passes** — not that you believe it does.
 
 **The gate**
 
