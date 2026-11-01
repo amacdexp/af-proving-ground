@@ -1,0 +1,15 @@
+{
+  "schema": "af-proving-ground/build/v1",
+  "build_id": "2026-11-01-claude-code--deepseek-v4-1-flash-verified",
+  "official": false,
+  "date": "2026-11-01",
+  "harness": { "name": "claude-code", "version": "2.1.314" },
+  "model": { "requested": "deepseek/deepseek-v4.1-flash", "served": "unreported", "reasoning": "max" },
+  "session": { "assistant_turns": 62, "wall_clock_s": 1688, "human_interventions": 0 },
+  "tokens": { "prompt_total": 6829998, "input_fresh": 121006, "cache_read": 6708992, "cache_write": 0, "output": 179945 },
+  "cost": { "billed_usd": null, "estimated_usd": 0.22, "source": "harness-report", "rate_table_date": null },
+  "outcome": { "build_completed": true, "spec_check": "pass", "baseline": "0/6 (not run)", "rebuild_rounds": 0 },
+  "artefact": { "commit": "69113ec7bf4533b5832fe12109848351bb303731", "files": 28, "loc": 3029, "tests": 164, "gate_runtime_s": 0.7 },
+  "supersedes": "2026-11-01-claude-code--deepseek-v4-1-flash",
+  "notes": "Retrospective correction to the pilot record. Build window 17:54:49-18:22:57 local (09:54:49-10:22:57Z). 62 build turns: 3 on deepseek-v4-pro, 59 on deepseek-v4-flash. The session was interrupted at 17:56 and the model was switched to deepseek-v4-flash; counted as 0 steering interventions because the work content was not corrected, but the switch is disclosed here. Token split comes from per-response transcript usage (harness-reported, not a provider invoice); cache_write is reported as 0. The pilot record's 67 turns and 7,432,912 prompt_total cover a wider session slice ending 19:18:59 local, not the build window; that record is superseded rather than edited. cost.estimated_usd 0.22 is the harness's own figure; no provider invoice and no rate-table date are available. model.served is unreported: the transcript exposes the harness labels deepseek-v4-pro and deepseek-v4-flash, not a provider-returned model id. baseline remains not run; there is no tools/baseline.py in the repository. spec_check passed (./dev/spec-check.sh), gate 164 tests in 0.7s. artefact files/loc count src/ and tests/ only (28 files, 3,029 lines), per docs/BUILD-REPORT.md."
+}
