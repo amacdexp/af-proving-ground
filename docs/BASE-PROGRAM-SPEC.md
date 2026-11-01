@@ -63,6 +63,8 @@ README.md
 .gitignore
 dev/
   spec-check.sh              # conformance check (§10)
+  gate.sh                    # the one command; prints one RESULT: line (§13)
+  run-local.sh               # harness-agnostic runner: scaffold / finish (§15)
 src/ledger/
   __init__.py
   config.py                  # settings loader + env override
@@ -86,6 +88,7 @@ src/ledger/
     __init__.py
     projections.py           # totals table maintenance
 tests/
+  CHECKSUM                   # sha256 over the suite; held-out check H7 (§13)
   test_config.py
   test_models.py
   test_store.py
@@ -377,3 +380,37 @@ Run in this order; stop at the first category that fails:
 The uplift is reviewed by someone who did not write the spec before `task/v1` is tagged. The substrate
 is then frozen and checksummed; scoring never depends on who built it — only on the gate and the
 held-out suite, both of which are published artefacts rather than personal judgements.
+
+---
+
+## 15. Harness-agnostic by construction
+
+Nothing in this repository is coupled to OpenClaw, or to any orchestrator. It is Python, `flask` and
+`pytest`. The three things that must be identical across arms are all plain artefacts:
+
+1. the starting commit — the `task/vN` tag,
+2. the gate — `dev/gate.sh`, one command, one `RESULT:` line,
+3. the record — `results/schema.json`.
+
+Everything else is the runner's business. An arm may be an agent framework, an IDE, a CLI harness, a
+shell script, or a person at a keyboard.
+
+**Local mode, no orchestrator:**
+
+```bash
+dev/run-local.sh scaffold A1 01        # detached worktree at task/v1 + the task path
+#   ... the arm does the work in /tmp/pg/A1/01 by whatever means ...
+dev/run-local.sh finish   A1 01        # runs the gate, writes a result skeleton
+```
+
+`finish` captures the gate line, the exit code and wall clock, and pre-fills the record with the
+environment. It does not fill harness, model or reasoning — those are the runner's to declare, and a
+record with them blank is not submittable.
+
+Why this is not a compromise: an orchestrator-specific benchmark measures the orchestrator. The point
+of the fixture is to be the part everyone can hold in common. If a harness needs help to run it, the
+help belongs in the harness, not here.
+
+**What is deliberately absent:** no agent runtime, no message bus, no inter-agent transport. Those are
+runner concerns and they are measured by the arm's own instrumentation, not by the substrate. A
+substrate that embedded a transport would only be runnable by harnesses that speak it.

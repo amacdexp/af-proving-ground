@@ -31,6 +31,26 @@ five above — an arm is a name, an arrangement, a version string and a result f
 
 ---
 
+## Harness-agnostic
+
+Nothing here requires OpenClaw, or any orchestrator. The repo is Python, `flask` and `pytest`. Three
+artefacts must be identical across arms — the `task/vN` tag, `dev/gate.sh`, and the result schema —
+and everything else is your runner's business.
+
+No orchestrator? Run it locally:
+
+```bash
+dev/run-local.sh scaffold A1 01     # detached worktree at task/v1
+#   ... do the work however you like ...
+dev/run-local.sh finish   A1 01     # gate + result skeleton
+```
+
+An arm can be an agent framework, an IDE, a CLI harness, or a person at a keyboard. There is no agent
+runtime, no message bus and no inter-agent transport in this repo, deliberately — a substrate that
+embedded one would only be runnable by harnesses that speak it.
+
+---
+
 ## The task
 
 `task/v1` — one ticket, written the way tickets arrive:

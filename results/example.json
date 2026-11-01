@@ -2,7 +2,7 @@
   "schema": "af-proving-ground/result/v1",
   "task":   { "tag": "task/v1", "commit": "0000000000000000000000000000000000000000" },
   "arm":    { "id": "A1", "label": "native agent, skills + tools" },
-  "harness":{ "name": "openclaw-native", "version": "0.0.0-example", "config": "default tool policy" },
+  "harness":{ "name": "example-harness", "version": "0.0.0-example", "config": "default tool policy" },
   "model":  { "requested": "example/model", "served": "example/model-2026-10-01", "reasoning": "high" },
   "environment": { "date": "2026-11-01", "os": "linux-x64", "python": "3.11.9" },
   "outcome": { "acceptance": "partial", "held_out": { "passed": 5, "total": 7 } },
