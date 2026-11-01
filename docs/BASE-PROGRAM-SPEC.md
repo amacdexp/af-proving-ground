@@ -1,6 +1,6 @@
 # Base program — build specification
 
-**Status:** build brief · **Built by:** Claude Code, one shot, outside the experiment
+**Status:** build brief · **Built by:** Claude Code in one unattended session, outside the experiment
 **Audience:** the builder only. The arms never read this file — it is stripped before the freeze.
 **Repo:** `amacdexp/af-proving-ground`
 
@@ -13,6 +13,11 @@ harness, model, or editor.
 
 Read once, build once, freeze once. After the freeze the repo is inert: every arm starts from the same
 commit and the same tag.
+
+**"One shot" is not a term we use.** A modern harness is an agent loop: the build that produced this
+repo took 67 assistant turns over 28 minutes at maximum reasoning. What matters, and what gets
+recorded, is that it was **unattended** — no human steering, no intervening correction. Any build that
+needs a human to nudge it is a different, more expensive experiment, and it says so.
 
 **The one design rule:** the repo must contain a *class* of defect, not a single incident. An arm that
 fixes the surface the tests point at will pass the visible suite and fail the held-out suite. That is

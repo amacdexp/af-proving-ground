@@ -178,6 +178,26 @@ tag, not a repair. **`main` is never touched after the freeze.**
 
 ---
 
+## Build axis (E0) — pilot
+
+The substrate itself was built from this spec in one unattended session. That is a measurable event,
+and a different capability from editing a frozen repo:
+
+| Field | Pilot value |
+|---|---|
+| harness | Claude Code |
+| model / reasoning | DeepSeek V4.1 Flash → V4 Pro mid-session, **max** |
+| assistant turns | 67 |
+| wall clock | 28 m 08 s |
+| prompt tokens | 7,432,912 total — **97.8% cache reads** |
+| cost | $0.22 |
+| human interventions | 0 |
+
+**This is one data point, not a comparison.** It is a baseline for anyone who builds the fixture
+themselves, and the fields above are the ones a build record must carry. Note what the numbers say:
+cheap in money, expensive in time, and almost all of the prompt volume is the same context being
+re-presented turn after turn — the #557 failure class wearing a different coat.
+
 ## What this repository is not
 
 Not a model benchmark, not a leaderboard, not a product. No AI, no harness code, no game, no
