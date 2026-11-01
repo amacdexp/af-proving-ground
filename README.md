@@ -37,6 +37,9 @@ Nothing here requires OpenClaw, or any orchestrator. The repo is Python, `flask`
 artefacts must be identical across arms — the `task/vN` tag, `dev/gate.sh`, and the result schema —
 and everything else is your runner's business.
 
+Runs on macOS with a POSIX shell (`zsh` or `bash`), Python 3.11+. No Windows or PowerShell steps — one
+platform, one dialect.
+
 No orchestrator? Run it locally:
 
 ```bash

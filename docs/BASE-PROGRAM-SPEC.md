@@ -33,6 +33,7 @@ the measurement.
 | One command | `python -m pytest -q` |
 | Determinism | clock injected, no unseeded randomness |
 | Containers | none |
+| Platform | **macOS** — POSIX `sh` and `bash` 3.2. No PowerShell, no Windows steps, no GNU-only flags |
 
 If a constraint cannot be met, stop and report — do not substitute a heavier stack.
 
@@ -295,6 +296,11 @@ Write `docs/BUILD-REPORT.md`:
 7. no `requests`, `httpx`, `urllib`, `socket` imports in `src/`;
 8. dependencies are exactly `flask` and `pytest`.
 
+**The script itself must be portable to macOS:** POSIX `sh`, `bash` 3.2 syntax only (no associative
+arrays, no `${var,,}`), no `grep -P`, no `stat -c`, no `sed -i` without a backup suffix. Write
+PowerShell variants nowhere — this project targets one platform on purpose, and a second shell dialect
+is a second thing to keep in sync.
+
 A build that fails this check is not the substrate. Fix the build, not the check.
 
 ---
@@ -436,8 +442,16 @@ substrate that embedded a transport would only be runnable by harnesses that spe
 
 ## 16. Running it locally, and seeing the expected errors
 
-**Assumption:** the repo is cloned into a workspace directory. Every command below is run from the
-**repo root**, and every path is relative to it — no absolute paths, no `/tmp`.
+**Assumption:** macOS, and the repo cloned into a workspace directory. Every command below is run from
+the **repo root**, and every path is relative to it — no absolute paths, no `/tmp`.
+
+Platform notes:
+
+- `python3` from Homebrew or the Xcode command-line tools, 3.11 or newer. A venv keeps it clean — do
+  not install into the system interpreter.
+- Shell is `zsh` or `bash`; every snippet here is POSIX and works in both.
+- **No PowerShell, no Windows steps.** One platform, one dialect; a second dialect is a second thing
+  to keep in sync for no gain.
 
 ```bash
 cd af-proving-ground                      # the clone, wherever your workspace keeps it
