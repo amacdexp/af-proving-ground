@@ -37,6 +37,12 @@ results comparable.
 
 ---
 
+### A6 onwards — your own arm
+
+The five above are the set this repo was built for. Anything else is `A6`, `A7`, … and needs three
+things: a name, a pinned harness version, and a **proven** model identity. A worked example follows the
+run steps below.
+
 ## The five arms this repo was built for
 
 | Arm | Arrangement | How it is wired |
@@ -90,6 +96,52 @@ embedded one would only be runnable by harnesses that speak it.
 
 Briefs version independently of the substrate tag: the code freezes as `task/vN`, the question freezes
 as `briefs/vN`. A result cites both, and neither moves underneath the other.
+
+## Worked example — adding A6: Claude Code with DeepSeek
+
+The harness you already use is a legitimate arm. Here is the whole cost of adding it.
+
+### Prerequisites (once, before any run)
+
+| # | Step | Why it matters to the record |
+|---|---|---|
+| 1 | Install Claude Code and run `claude --version` | that string becomes `harness.version`; an unpinned harness voids the run |
+| 2 | Point it at DeepSeek's Anthropic-compatible endpoint: base URL, auth token, model id, small/fast model id — as environment variables | the exact configuration becomes `harness.config`; a different endpoint is a different harness |
+| 3 | Set the reasoning level in the harness and leave it alone | `max` is not the same experiment as `high`; it goes in `model.reasoning` |
+| 4 | **Prove the model** — make one throwaway call and capture the model id the provider returns | `model.served` is required. `"unreported"` voids the run |
+
+Keep the token in your shell or a secret store. Never in the repo, never in a record, never in a
+screenshot you publish.
+
+The env names a Claude-Code-style harness usually honours are `ANTHROPIC_BASE_URL`,
+`ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_MODEL` and `ANTHROPIC_SMALL_FAST_MODEL`. If your build differs,
+that is fine — what matters is that you write down exactly what you used in `harness.config`, because
+that string is the only way a later reader can tell two A6 runs apart.
+
+### Then the six steps, unchanged
+
+```bash
+dev/run-local.sh scaffold A6 01        # step 2: fresh worktree at task/v1
+cd ../pg-runs/A6/01 && claude          # step 3: open the harness in that directory
+#   paste briefs/v1/RUN-BRIEF.md with WORKTREE / ARM=A6 / RUN=01 filled in
+#   step 4: let it work, answer nothing
+./dev/gate.sh                          # step 5
+dev/run-local.sh finish A6 01          # step 6: skeleton, then fill from briefs/v1/STATS.md
+```
+
+### Traps when a provider sits behind a shim
+
+- **The alias is not the model.** The harness may show `deepseek-v4.1-flash` because you asked for it.
+  `model.served` wants what the provider answered with. If the harness will not show it, capture the
+  response body once, at setup, and keep it with the run.
+- **Two bills.** The harness may report its own estimate while DeepSeek bills separately. Record which
+  one you used — `cost.source` exists for exactly this.
+- **Two context economies.** A shim may not pass prompt caching through, so the same work reads as far
+  more fresh input than on a native path. That is a finding about the shim, not about the model, and
+  the `economy.context` split is where it shows.
+- **Version drift mid-run.** If the harness auto-updates, pin it before the run and check after.
+
+---
 
 ## The task
 
