@@ -1,0 +1,11 @@
+[project]
+name = "ledger"
+version = "0.1.0"
+description = "Invoice ingest for a small bookkeeping team"
+requires-python = ">=3.11"
+dependencies = ["flask", "pytest"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"

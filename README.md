@@ -70,6 +70,75 @@ tests point at will pass `pytest` and fail the held-out suite. That gap is the m
 
 ---
 
+## The ledger application
+
+The substrate is an invoice-ingest service: a Flask API, one sqlite database, a durable outbox and a
+CLI. A **record** is a supplier invoice — supplier, billing email, amount in integer cents, currency,
+issue date and line items.
+
+### Setup
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+pip install flask pytest
+export PYTHONPATH=src
+```
+
+`flask` and `pytest` are the only dependencies, and the test suite never touches the network.
+
+### Storage
+
+The application writes to exactly one directory: `data_dir`.
+
+- `settings.toml` sets `[storage] data_dir = "data"`; a relative path resolves against the settings
+  file, so the default is `data/` at the repository root.
+- `LEDGER_DATA_DIR` overrides the directory for a run.
+- `LEDGER_SETTINGS` points at an alternative settings file; relative `data_dir` values resolve next
+  to that file.
+
+In this application `data_dir` is the only writable location. The sqlite database
+(`ledger.sqlite`), the totals snapshot (`totals.json`) and the export snapshot (`export.json`) all
+live there. Keep runs out of the repository:
+
+```bash
+export LEDGER_DATA_DIR="$PWD/data-run"
+mkdir -p data-run
+```
+
+### HTTP
+
+| Route | Behaviour |
+|---|---|
+| `POST /records` | 201 with a `Location` header; 400 for an invalid record; 409 with `{"error":"duplicate_email"}` when the address is already on file |
+| `POST /import` | enqueue a batch, 202 |
+| `GET /records/<id>` | 200 with the stored record, 404 when it is missing |
+| `GET /reports/totals` | 200 with per-currency totals |
+
+### CLI
+
+```bash
+python -m ledger.cli backfill --file FILE [--dry-run]
+python -m ledger.cli drain [--limit N]
+python -m ledger.cli report
+```
+
+`report` prints per-currency totals and writes `totals.json` and `export.json` under `data_dir`.
+Totals count open and paid records; void records are excluded.
+
+### Tests and the gate
+
+```bash
+./dev/gate.sh                  # one RESULT line on stdout; pytest detail on stderr
+./dev/spec-check.sh            # conformance checks
+cd tests && shasum -a 256 -c CHECKSUM
+```
+
+The gate is the recorded entry point. It sets `PYTHONPATH=src` and `PYTHONDONTWRITEBYTECODE=1`
+itself, and uses `.venv/bin/python` when present, so it also runs without an activated venv.
+
+---
+
 ## Process constant
 
 Every arm, every run, the same rules:
@@ -169,7 +238,8 @@ result to flatter the model.
 git clone <repo> && cd af-proving-ground
 git worktree add --detach ../pg-runs/<arm>/<n> task/v1
 cd ../pg-runs/<arm>/<n>
-python -m pytest -q                       # the gate, unchanged
+python -m pytest -q                       # the suite
+./dev/gate.sh                            # the gate, unchanged
 git diff task/v1 > ../../results/<date>/<arm>-<n>.patch
 ```
 

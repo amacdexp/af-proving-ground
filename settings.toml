@@ -1,0 +1,13 @@
+# Ledger settings.
+#
+# data_dir is the only location the application writes to: the sqlite database,
+# the export snapshot and the totals snapshot all live under it.
+
+[storage]
+data_dir = "data"
+
+[validation]
+strict = false          # default duplicate checking off
+
+[queue]
+batch = 25
